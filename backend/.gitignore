@@ -1,0 +1,6 @@
+debug/
+target/
+.idea/
+
+**/*.rs.bk
+*.pdb
