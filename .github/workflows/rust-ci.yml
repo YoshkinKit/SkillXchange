@@ -20,7 +20,9 @@ jobs:
         override: true
 
     - name: Сборка
+      working-directory: backend
       run: cargo build --verbose
 
     - name: Запуск тестов
+      working-directory: backend
       run: cargo test --verbose

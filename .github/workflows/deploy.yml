@@ -40,7 +40,7 @@ jobs:
     - name: Деплой на Heroku
       uses: akhileshns/heroku-deploy@v3.13.15
       with:
-        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
         heroku_app_name: 'skillxchange'
         heroku_email: '10252126@stud.op.edu.ua'
         usedocker: true
