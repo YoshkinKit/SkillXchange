@@ -12,7 +12,7 @@ RUN npm install
 RUN npm run build
 
 # Stage 3: Финальный образ
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 WORKDIR /app
 
 # Копируем бэкенд
