@@ -1,5 +1,5 @@
 use actix_files::Files;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer};
 use std::env;
 
 #[actix_web::main]
