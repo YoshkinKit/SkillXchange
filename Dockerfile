@@ -12,7 +12,7 @@ RUN npm install
 RUN npm run build
 
 # Stage 3: Финальный образ
-FROM debian:bullseye-slim
+FROM rust:latest
 WORKDIR /app
 
 # Копируем бэкенд
