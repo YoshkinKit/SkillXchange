@@ -1,0 +1,26 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Установка Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Сборка
+      run: cargo build --verbose
+
+    - name: Запуск тестов
+      run: cargo test --verbose
