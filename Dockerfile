@@ -12,8 +12,10 @@ RUN npm install
 RUN npm run build
 
 # Stage 3: Финальный образ
-FROM rust:latest
+FROM debian:bookworm-slim
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Копируем бэкенд
 COPY --from=backend-builder /app/backend/target/release/backend ./backend
