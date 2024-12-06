@@ -519,6 +519,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "futures",
+ "futures-util",
  "jsonwebtoken",
  "serde",
  "serde_json",

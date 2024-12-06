@@ -43,7 +43,6 @@ pub async fn register_user(
     }
 }
 
-// Объявляем структуры Claims
 #[derive(Serialize, Deserialize)]
 struct Claims {
     sub: i32,
@@ -72,7 +71,6 @@ pub async fn login_user(
     match result {
         Ok(record) => {
             if verify(&form.password, &record.password_hash).unwrap() {
-                // Генерация access-токена (живет 3 минуты)
                 let access_exp = Utc::now()
                     .checked_add_signed(Duration::minutes(3))
                     .expect("Ошибка при установке времени")
@@ -87,7 +85,6 @@ pub async fn login_user(
                     &EncodingKey::from_secret(std::env::var("ACCESS_TOKEN_SECRET").unwrap().as_ref()),
                 ).unwrap();
 
-                // Генерация refresh-токена (живёт 30 дней)
                 let refresh_exp = Utc::now()
                     .checked_add_signed(Duration::days(30))
                     .expect("Ошибка при установке времени")
@@ -102,7 +99,6 @@ pub async fn login_user(
                     &EncodingKey::from_secret(std::env::var("REFRESH_TOKEN_SECRET").unwrap().as_ref()),
                 ).unwrap();
 
-                // Сохраняем refresh-токен в базе данных
                 sqlx::query!(
                     "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, to_timestamp($3))",
                     record.user_id,
@@ -113,7 +109,6 @@ pub async fn login_user(
                     .await
                     .unwrap();
 
-                // Возвращаем токены клиенту
                 HttpResponse::Ok().json(serde_json::json!({
                     "access_token": access_token,
                     "refresh_token": refresh_token
@@ -132,7 +127,6 @@ pub async fn refresh_token(
 ) -> HttpResponse {
     let refresh_token = form["refresh_token"].as_str().unwrap_or("");
 
-    // Проверяем валидность refresh-токена
     let token_data = decode::<Claims>(
         refresh_token,
         &DecodingKey::from_secret(std::env::var("REFRESH_TOKEN_SECRET").unwrap().as_ref()),
@@ -143,7 +137,6 @@ pub async fn refresh_token(
         Ok(data) => {
             let user_id = data.claims.sub;
 
-            // Проверяем, что токен есть в базе и не истек
             let result = sqlx::query!(
                 "SELECT * FROM refresh_tokens WHERE user_id = $1 AND token = $2 AND expires_at > NOW()",
                 user_id,
@@ -154,7 +147,6 @@ pub async fn refresh_token(
 
             match result {
                 Ok(_) => {
-                    // Генерируем новый access-токен
                     let access_exp = Utc::now()
                         .checked_add_signed(Duration::minutes(3))
                         .expect("Ошибка при установке времени")
