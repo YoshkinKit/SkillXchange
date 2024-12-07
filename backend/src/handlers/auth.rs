@@ -10,6 +10,7 @@ pub struct RegisterInfo {
     pub username: String,
     pub email: String,
     pub password: String,
+    pub role: String,
 }
 
 #[derive(Serialize)]
@@ -32,13 +33,14 @@ pub async fn register_user(
 
     let result = sqlx::query!(
         r#"
-        INSERT INTO users (username, email, password_hash)
-        VALUES ($1, $2, $3)
+        INSERT INTO users (username, email, password_hash, role)
+        VALUES ($1, $2, $3, $4)
         RETURNING user_id, username, email, role, created_at
         "#,
         form.username,
         form.email,
-        password_hash
+        password_hash,
+        form.role
     )
         .fetch_one(pool.get_ref())
         .await;

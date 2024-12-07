@@ -40,7 +40,10 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::get().to(handlers::user::get_all_users))
                     .route("/{id}", web::get().to(handlers::user::get_user_by_id))
                     .route("/{id}", web::put().to(handlers::user::update_user))
-                    .route("/{id}", web::delete().to(handlers::user::delete_user)),
+                    .route("/{id}", web::delete().to(handlers::user::delete_user))
+                    .route("/skill/{id}", web::get().to(handlers::user::get_users_by_skill))
+                    .route("/{id}/skills", web::post().to(handlers::user::add_user_skill))
+                    .route("/{id}/skills/{skill_id}", web::delete().to(handlers::user::delete_user_skill)),
             )
             .service(Files::new("/static", "../frontend/dist").index_file("index.html"))
     })

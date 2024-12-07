@@ -32,7 +32,7 @@ pub async fn get_all_users(pool: web::Data<PgPool>) -> HttpResponse {
                 role: user.role,
                 profile_picture: user.profile_picture,
                 bio: user.bio,
-                created_at: user.created_at.expect("REASON"),
+                created_at: user.created_at.expect("1970-01-01T00:00:00Z"),
             }).collect::<Vec<_>>();
             HttpResponse::Ok().json(users)
         }
@@ -60,7 +60,7 @@ pub async fn get_user_by_id(
                 role: user.role,
                 profile_picture: user.profile_picture,
                 bio: user.bio,
-                created_at: user.created_at.expect("REASON"),
+                created_at: user.created_at.expect("1970-01-01T00:00:00Z"),
             };
             HttpResponse::Ok().json(user)
         }
@@ -200,5 +200,108 @@ pub async fn delete_user(
     match tx.commit().await {
         Ok(_) => HttpResponse::Ok().body("Пользователь удален"),
         Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка фиксации транзакции: {}", e)),
+    }
+}
+
+#[derive(serde::Deserialize)]
+pub struct AddUserSkill {
+    pub skill_id: i32,
+}
+
+pub async fn get_users_by_skill(
+    pool: web::Data<PgPool>,
+    skill_id: web::Path<i32>,
+    req: actix_web::HttpRequest,
+) -> HttpResponse {
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if role != Role::Admin || role != Role::User {
+        return HttpResponse::Forbidden().body("Доступ запрещен");
+    }
+
+    let result = sqlx::query!(
+        r#"
+        SELECT u.user_id, u.username, u.email, u.role, u.profile_picture, u.bio, u.created_at
+        FROM users u
+        JOIN user_skills us ON u.user_id = us.user_id
+        WHERE us.skill_id = $1
+        "#,
+        *skill_id
+    )
+        .fetch_all(pool.get_ref())
+        .await;
+
+    match result {
+        Ok(users) => {
+            let users = users.into_iter().map(|user| UserResponse {
+                user_id: user.user_id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                profile_picture: user.profile_picture,
+                bio: user.bio,
+                created_at: user.created_at.expect("1970-01-01T00:00:00Z"),
+            }).collect::<Vec<_>>();
+            HttpResponse::Ok().json(users)
+        }
+        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
+    }
+}
+
+pub async fn add_user_skill(
+    pool: web::Data<PgPool>,
+    user_id: web::Path<i32>,
+    skill: web::Json<AddUserSkill>,
+    req: actix_web::HttpRequest,
+) -> HttpResponse {
+    let auth_user_id = req.extensions().get::<i32>().cloned();
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if auth_user_id != Some(*user_id) && role != Role::Admin {
+        return HttpResponse::Forbidden().body("Доступ запрещен");
+    }
+
+    let result = sqlx::query!(
+        r#"
+        INSERT INTO user_skills (user_id, skill_id)
+        VALUES ($1, $2)
+        ON CONFLICT (user_id, skill_id) DO NOTHING
+        "#,
+        *user_id,
+        skill.skill_id
+    )
+        .execute(pool.get_ref())
+        .await;
+
+    match result {
+        Ok(_) => HttpResponse::Ok().body("Навык добавлен"),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
+    }
+}
+
+pub async fn delete_user_skill(
+    pool: web::Data<PgPool>,
+    params: web::Path<(i32, i32)>, // (user_id, skill_id)
+    req: actix_web::HttpRequest,
+) -> HttpResponse {
+    let (user_id, skill_id) = params.into_inner();
+    let auth_user_id = req.extensions().get::<i32>().cloned();
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if auth_user_id != Some(user_id) && role != Role::Admin {
+        return HttpResponse::Forbidden().body("Доступ запрещен");
+    }
+
+    let result = sqlx::query!(
+        r#"DELETE FROM user_skills WHERE user_id = $1 AND skill_id = $2"#,
+        user_id,
+        skill_id
+    )
+        .execute(pool.get_ref())
+        .await;
+
+    match result {
+        Ok(_) => HttpResponse::Ok().body("Навык удален"),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
     }
 }

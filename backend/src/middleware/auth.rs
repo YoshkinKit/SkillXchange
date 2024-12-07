@@ -30,6 +30,8 @@ pub async fn jwt_validator(
             };
             req.extensions_mut().insert(role);
 
+            req.extensions_mut().insert(token_data.claims.exp);
+
             Ok(req)
         }
         Err(_) => {
