@@ -45,6 +45,22 @@ async fn main() -> std::io::Result<()> {
                     .route("/{id}/skills", web::post().to(handlers::user::add_user_skill))
                     .route("/{id}/skills/{skill_id}", web::delete().to(handlers::user::delete_user_skill)),
             )
+            .service(
+                web::scope("/api/categories")
+                    .route("", web::get().to(handlers::category::get_all_categories))
+                    .route("/{id}", web::get().to(handlers::category::get_category_by_id)),
+            )
+            .service(
+                web::scope("api/admin")
+                    .wrap(auth_middleware.clone())
+                    .wrap(RequireRole::new(Role::Admin))
+                    .service(
+                        web::scope("/categories")
+                            .route("", web::post().to(handlers::category::create_category))
+                            .route("/{id}", web::put().to(handlers::category::update_category))
+                            .route("/{id}", web::delete().to(handlers::category::delete_category)),
+                    )
+            )
             .service(Files::new("/static", "../frontend/dist").index_file("index.html"))
     })
         .bind(("127.0.0.1", port))?
