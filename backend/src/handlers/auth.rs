@@ -5,13 +5,20 @@ use jsonwebtoken::{decode, DecodingKey, encode, EncodingKey, Header, Validation}
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::models::user::UserResponse;
-
 #[derive(Deserialize)]
 pub struct RegisterInfo {
     pub username: String,
     pub email: String,
     pub password: String,
+}
+
+#[derive(Serialize)]
+pub struct RegisterResponse {
+    pub user_id: i32,
+    pub username: String,
+    pub email: String,
+    pub role: String,
+    pub created_at: chrono::DateTime<Utc>,
 }
 
 pub async fn register_user(
@@ -23,12 +30,11 @@ pub async fn register_user(
         Err(e) => return HttpResponse::InternalServerError().body(format!("Ошибка хеширования: {}", e)),
     };
 
-    let result = sqlx::query_as!(
-        UserResponse,
+    let result = sqlx::query!(
         r#"
         INSERT INTO users (username, email, password_hash)
         VALUES ($1, $2, $3)
-        RETURNING user_id, username, email, created_at
+        RETURNING user_id, username, email, role, created_at
         "#,
         form.username,
         form.email,
@@ -38,7 +44,13 @@ pub async fn register_user(
         .await;
 
     match result {
-        Ok(user) => HttpResponse::Ok().json(user),
+        Ok(user) => HttpResponse::Ok().json(RegisterResponse {
+            user_id: user.user_id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            created_at: user.created_at.expect("REASON"),
+        }),
         Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка базы данных: {}", e)),
     }
 }
@@ -46,6 +58,7 @@ pub async fn register_user(
 #[derive(Serialize, Deserialize)]
 struct Claims {
     sub: i32,
+    role: String,
     exp: usize,
 }
 
@@ -61,7 +74,7 @@ pub async fn login_user(
 ) -> HttpResponse {
     let result = sqlx::query!(
         r#"
-        SELECT user_id, password_hash FROM users WHERE email = $1
+        SELECT user_id, password_hash, role FROM users WHERE email = $1
         "#,
         form.email
     )
@@ -77,6 +90,7 @@ pub async fn login_user(
                     .timestamp();
                 let access_claims = Claims {
                     sub: record.user_id,
+                    role: record.role.clone(),
                     exp: access_exp as usize,
                 };
                 let access_token = encode(
@@ -91,6 +105,7 @@ pub async fn login_user(
                     .timestamp();
                 let refresh_claims = Claims {
                     sub: record.user_id,
+                    role: record.role.clone(),
                     exp: refresh_exp as usize,
                 };
                 let refresh_token = encode(
@@ -153,6 +168,7 @@ pub async fn refresh_token(
                         .timestamp();
                     let access_claims = Claims {
                         sub: user_id,
+                        role: data.claims.role,
                         exp: access_exp as usize,
                     };
                     let access_token = encode(

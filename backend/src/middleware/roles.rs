@@ -1,10 +1,12 @@
 use std::rc::Rc;
-
-use actix_web::{dev::ServiceRequest, Error as ActixError, HttpMessage};
-use actix_web::body::EitherBody;
-use actix_web::dev::{forward_ready, Service, Transform};
-use actix_web::http::StatusCode;
-use actix_web::HttpResponse;
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    Error as ActixError, HttpMessage,
+    body::EitherBody,
+    dev::{forward_ready, Service, Transform},
+    http::StatusCode,
+    HttpResponse,
+};
 use futures_util::future::{LocalBoxFuture, Ready, ready};
 
 #[derive(Clone, PartialEq)]
@@ -28,10 +30,10 @@ impl RequireRole {
 
 impl<S, B> Transform<S, ServiceRequest> for RequireRole
 where
-    S: Service<ServiceRequest, Response = actix_web::dev::ServiceResponse<B>, Error = ActixError> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = ActixError> + 'static,
     B: 'static,
 {
-    type Response = actix_web::dev::ServiceResponse<EitherBody<B>>;
+    type Response = ServiceResponse<EitherBody<B>>;
     type Error = ActixError;
     type Transform = RequireRoleMiddleware<S>;
     type InitError = ();
@@ -52,10 +54,10 @@ pub struct RequireRoleMiddleware<S> {
 
 impl<S, B> Service<ServiceRequest> for RequireRoleMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = actix_web::dev::ServiceResponse<B>, Error = ActixError> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = ActixError> + 'static,
     B: 'static,
 {
-    type Response = actix_web::dev::ServiceResponse<EitherBody<B>>;
+    type Response = ServiceResponse<EitherBody<B>>;
     type Error = ActixError;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -82,9 +84,11 @@ where
                 let res = svc.call(req).await?;
                 Ok(res.map_into_left_body())
             } else {
-                let response = HttpResponse::build(StatusCode::FORBIDDEN)
+                let (http_req, _) = req.into_parts();
+                let res = HttpResponse::build(StatusCode::FORBIDDEN)
                     .body("Доступ запрещен");
-                Ok(req.into_response(response.map_into_left_body()))
+                let res = ServiceResponse::new(http_req, res);
+                Ok(res.map_into_right_body())  // Изменено на map_into_right_body()
             }
         })
     }

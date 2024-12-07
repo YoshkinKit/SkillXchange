@@ -2,9 +2,11 @@ use std::env;
 
 use actix_files::Files;
 use actix_web::{middleware::Logger, App, HttpServer, web};
+use actix_web::web::route;
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 use middleware::auth::jwt_validator;
+use crate::middleware::roles::{RequireRole, Role};
 
 mod db;
 mod handlers;
@@ -33,8 +35,13 @@ async fn main() -> std::io::Result<()> {
                     .route("/refresh", web::post().to(handlers::auth::refresh_token)),
             )
             .service(
-                web::scope("/api")
-                    .wrap(auth_middleware)
+                web::scope("/api/users")
+                    .wrap(auth_middleware.clone())
+                    .wrap(RequireRole::new(Role::User))
+                    .route("", web::get().to(handlers::user::get_all_users))
+                    .route("/{id}", web::get().to(handlers::user::get_user_by_id))
+                    .route("/{id}", web::put().to(handlers::user::update_user))
+                    .route("/{id}", web::delete().to(handlers::user::delete_user)),
             )
             .service(Files::new("/static", "./frontend/dist").index_file("index.html"))
     })
