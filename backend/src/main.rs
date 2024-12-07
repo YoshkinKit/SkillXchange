@@ -2,7 +2,6 @@ use std::env;
 
 use actix_files::Files;
 use actix_web::{middleware::Logger, App, HttpServer, web};
-use actix_web::web::route;
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 use middleware::auth::jwt_validator;
@@ -43,7 +42,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/{id}", web::put().to(handlers::user::update_user))
                     .route("/{id}", web::delete().to(handlers::user::delete_user)),
             )
-            .service(Files::new("/static", "./frontend/dist").index_file("index.html"))
+            .service(Files::new("/static", "../frontend/dist").index_file("index.html"))
     })
         .bind(("127.0.0.1", port))?
         .run()

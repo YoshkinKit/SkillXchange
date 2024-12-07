@@ -1,7 +1,6 @@
 use std::env;
 
-use sqlx::PgPool;
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{PgPool, postgres::PgPoolOptions, };
 
 pub async fn get_db_pool() -> PgPool {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");

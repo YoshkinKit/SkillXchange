@@ -1,10 +1,9 @@
+use actix_web::{HttpMessage, HttpResponse, web};
 use chrono::{DateTime, Utc};
-use actix_web::{web, HttpResponse, HttpMessage};
 use sqlx::PgPool;
 
-
-use crate::models::user::{User};
 use crate::middleware::roles::Role;
+use crate::models::user::User;
 
 #[derive(serde::Serialize)]
 struct UserResponse {
@@ -21,8 +20,8 @@ pub async fn get_all_users(pool: web::Data<PgPool>) -> HttpResponse {
     let result = sqlx::query!(
         r#"SELECT user_id, username, email, role, profile_picture, bio, created_at FROM users"#
     )
-    .fetch_all(pool.get_ref())
-    .await;
+        .fetch_all(pool.get_ref())
+        .await;
 
     match result {
         Ok(users) => {
@@ -36,7 +35,7 @@ pub async fn get_all_users(pool: web::Data<PgPool>) -> HttpResponse {
                 created_at: user.created_at.expect("REASON"),
             }).collect::<Vec<_>>();
             HttpResponse::Ok().json(users)
-        },
+        }
         Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка базы данных: {}", e)),
     }
 }
@@ -49,8 +48,8 @@ pub async fn get_user_by_id(
         r#"SELECT user_id, username, email, role, profile_picture, bio, created_at FROM users WHERE user_id = $1"#,
         *user_id
     )
-    .fetch_one(pool.get_ref())
-    .await;
+        .fetch_one(pool.get_ref())
+        .await;
 
     match result {
         Ok(user) => {
@@ -64,7 +63,7 @@ pub async fn get_user_by_id(
                 created_at: user.created_at.expect("REASON"),
             };
             HttpResponse::Ok().json(user)
-        },
+        }
         Err(sqlx::Error::RowNotFound) => HttpResponse::NotFound().body("Пользователь не найден"),
         Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
     }
@@ -84,11 +83,9 @@ pub async fn update_user(
     data: web::Json<UpdateUser>,
     req: actix_web::HttpRequest,
 ) -> HttpResponse {
-    // Получаем ID пользователя из токена
     let auth_user_id = req.extensions().get::<i32>().cloned();
     let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
 
-    // Проверяем права доступа
     if auth_user_id != Some(*user_id) && role != Role::Admin {
         return HttpResponse::Forbidden().body("Доступ запрещен");
     }
@@ -126,7 +123,6 @@ pub async fn update_user(
         Err(_) => return HttpResponse::NotFound().body("Пользователь не найден"),
     };
 
-    // Обновляем поля
     if let Some(username) = &data.username {
         user.username = username.clone();
     }
@@ -140,7 +136,6 @@ pub async fn update_user(
         user.bio = Some(bio.clone());
     }
 
-    // Сохраняем изменения
     let result = sqlx::query!(
         r#"
         UPDATE users SET
@@ -165,7 +160,6 @@ pub async fn update_user(
     }
 }
 
-// Удаление пользователя
 pub async fn delete_user(
     pool: web::Data<PgPool>,
     user_id: web::Path<i32>,
@@ -178,15 +172,33 @@ pub async fn delete_user(
         return HttpResponse::Forbidden().body("Доступ запрещен");
     }
 
-    let result = sqlx::query!(
+    let mut tx = match pool.begin().await {
+        Ok(tx) => tx,
+        Err(e) => return HttpResponse::InternalServerError().body(format!("Ошибка начала транзакции: {}", e)),
+    };
+
+    if let Err(e) = sqlx::query!(
+        r#"DELETE FROM refresh_tokens WHERE user_id = $1"#,
+        *user_id
+    )
+        .execute(&mut *tx)
+        .await
+    {
+        return HttpResponse::InternalServerError().body(format!("Ошибка удаления токенов: {}", e));
+    }
+
+    if let Err(e) = sqlx::query!(
         r#"DELETE FROM users WHERE user_id = $1"#,
         *user_id
     )
-        .execute(pool.get_ref())
-        .await;
+        .execute(&mut *tx)
+        .await
+    {
+        return HttpResponse::InternalServerError().body(format!("Ошибка удаления пользователя: {}", e));
+    }
 
-    match result {
+    match tx.commit().await {
         Ok(_) => HttpResponse::Ok().body("Пользователь удален"),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка фиксации транзакции: {}", e)),
     }
 }
