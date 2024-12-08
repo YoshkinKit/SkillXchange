@@ -465,7 +465,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_all_users_unauthorized() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
 
