@@ -59,7 +59,7 @@ jobs:
         ACCESS_TOKEN_SECRET: test_secret_key
         REFRESH_TOKEN_SECRET: test_refresh_secret_key
         PORT: 8000
-      run: cargo test --verbose
+      run: cargo test --verbose -- --test-threads=1
 
   deploy:
     runs-on: ubuntu-latest
