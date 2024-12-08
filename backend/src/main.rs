@@ -27,12 +27,14 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .app_data(web::Data::new(pool.clone()))
+            // Маршруты для аутентификации и авторизации
             .service(
                 web::scope("/api/auth")
                     .route("/register", web::post().to(handlers::auth::register_user))
                     .route("/login", web::post().to(handlers::auth::login_user))
                     .route("/refresh", web::post().to(handlers::auth::refresh_token)),
             )
+            // Маршруты для работы с пользователями
             .service(
                 web::scope("/api/users")
                     .wrap(auth_middleware.clone())
@@ -45,12 +47,20 @@ async fn main() -> std::io::Result<()> {
                     .route("/{id}/skills", web::post().to(handlers::user::add_user_skill))
                     .route("/{id}/skills/{skill_id}", web::delete().to(handlers::user::delete_user_skill)),
             )
+            // Маршруты для работы с категориями
             .service(
                 web::scope("/api/categories")
                     .route("", web::get().to(handlers::category::get_all_categories))
                     .route("/{id}", web::get().to(handlers::category::get_category_by_id)),
             )
+            // Маршруты для работы с навыками
             .service(
+                web::scope("/api/skills")
+                    .route("", web::get().to(handlers::skill::get_all_skills))
+                    .route("/{id}", web::get().to(handlers::skill::get_skill_by_id)),
+            )
+            .service(
+                // Маршруты для администратора
                 web::scope("api/admin")
                     .wrap(auth_middleware.clone())
                     .wrap(RequireRole::new(Role::Admin))
@@ -60,6 +70,12 @@ async fn main() -> std::io::Result<()> {
                             .route("/{id}", web::put().to(handlers::category::update_category))
                             .route("/{id}", web::delete().to(handlers::category::delete_category)),
                     )
+                    .service(
+                        web::scope("/skills")
+                            .route("", web::post().to(handlers::skill::create_skill))
+                            .route("/{id}", web::put().to(handlers::skill::update_skill))
+                            .route("/{id}", web::delete().to(handlers::skill::delete_skill)),
+                    ),
             )
             .service(Files::new("/static", "../frontend/dist").index_file("index.html"))
     })
