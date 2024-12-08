@@ -39,10 +39,26 @@ jobs:
       run: cargo build --verbose
 
     - name: Установить переменные окружения
-      run: echo "DATABASE_URL=postgres://postgres:password@localhost:5432/test_db" >> $GITHUB_ENV
+      run: |
+        echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
+        echo "ACCESS_TOKEN_SECRET=test_secret_key" >> $GITHUB_ENV
+        echo "REFRESH_TOKEN_SECRET=test_refresh_secret_key" >> $GITHUB_ENV
+        echo "PORT=8000" >> $GITHUB_ENV
+    
+    - name: Применить миграции
+      working-directory: backend
+      run: |
+        cargo install sqlx-cli --no-default-features --features native-tls,postgres
+        sqlx database create
+        sqlx migrate run
 
     - name: Запуск тестов
       working-directory: backend
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        ACCESS_TOKEN_SECRET: test_secret_key
+        REFRESH_TOKEN_SECRET: test_refresh_secret_key
+        PORT: 8000
       run: cargo test --verbose
 
   deploy:
