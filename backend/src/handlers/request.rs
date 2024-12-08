@@ -2,8 +2,6 @@ use actix_web::{HttpMessage, HttpResponse, web};
 use chrono::Utc;
 use sqlx::PgPool;
 
-use crate::middleware::roles::Role;
-
 #[derive(serde::Deserialize)]
 pub struct CreateRequest {
     pub receiver_id: i32,

@@ -71,6 +71,18 @@ async fn main() -> std::io::Result<()> {
                     .route("/{id}/status", web::put().to(handlers::request::update_request_status))
                     .route("/{id}", web::delete().to(handlers::request::delete_request)),
             )
+            // Маршруты для работы с отзывами
+            .service(
+                web::scope("/api/reviews")
+                    .wrap(auth_middleware.clone())
+                    .wrap(RequireRole::new(Role::User))
+                    .route("/user/{id}", web::get().to(handlers::review::get_user_reviews))
+                    .route("/user/{id}/skill/{skill_id}", web::get().to(handlers::review::get_user_reviews_by_skill))
+                    .route("/sent/{id}", web::get().to(handlers::review::get_sent_reviews))
+                    .route("", web::post().to(handlers::review::create_review))
+                    .route("/{id}", web::put().to(handlers::review::update_review))
+                    .route("/{id}", web::delete().to(handlers::review::delete_review)),
+            )
             .service(
                 // Маршруты для администратора
                 web::scope("api/admin")
