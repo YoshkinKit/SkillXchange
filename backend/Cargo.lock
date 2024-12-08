@@ -513,6 +513,7 @@ name = "backend"
 version = "0.1.0"
 dependencies = [
  "actix-files",
+ "actix-http",
  "actix-web",
  "actix-web-httpauth",
  "bcrypt",
@@ -521,6 +522,7 @@ dependencies = [
  "futures",
  "futures-util",
  "jsonwebtoken",
+ "regex",
  "serde",
  "serde_json",
  "sqlx",

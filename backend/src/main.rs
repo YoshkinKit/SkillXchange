@@ -96,16 +96,18 @@ async fn main() -> std::io::Result<()> {
             .service(
                 // Маршруты для администратора
                 web::scope("api/admin")
-                    .wrap(auth_middleware.clone())
-                    .wrap(RequireRole::new(Role::Admin))
                     .service(
                         web::scope("/categories")
+                            .wrap(auth_middleware.clone())
+                            .wrap(RequireRole::new(Role::Admin))
                             .route("", web::post().to(handlers::category::create_category))
                             .route("/{id}", web::put().to(handlers::category::update_category))
                             .route("/{id}", web::delete().to(handlers::category::delete_category)),
                     )
                     .service(
                         web::scope("/skills")
+                            .wrap(auth_middleware.clone())
+                            .wrap(RequireRole::new(Role::Admin))
                             .route("", web::post().to(handlers::skill::create_skill))
                             .route("/{id}", web::put().to(handlers::skill::update_skill))
                             .route("/{id}", web::delete().to(handlers::skill::delete_skill)),

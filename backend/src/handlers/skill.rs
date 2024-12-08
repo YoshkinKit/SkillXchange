@@ -1,22 +1,25 @@
+use actix_http::HttpMessage;
 use actix_web::{HttpResponse, web};
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 
-#[derive(serde::Deserialize)]
+use crate::middleware::roles::Role;
+
+#[derive(serde::Deserialize, serde::Serialize)]
 pub struct CreateSkill {
     pub title: String,
     pub description: String,
     pub category_id: i32,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 pub struct UpdateSkill {
     pub title: Option<String>,
     pub description: Option<String>,
     pub category_id: Option<i32>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 pub struct SkillResponse {
     pub skill_id: i32,
     pub title: String,
@@ -76,7 +79,14 @@ pub async fn get_skill_by_id(
 pub async fn create_skill(
     pool: web::Data<PgPool>,
     form: web::Json<CreateSkill>,
+    req: actix_web::HttpRequest,
 ) -> HttpResponse {
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if role != Role::Admin {
+        return HttpResponse::Forbidden().body("Только администратор может добавлять навыки");
+    }
+
     let result = sqlx::query!(
         r#"
         INSERT INTO skills (title, description, category_id)
@@ -109,7 +119,14 @@ pub async fn update_skill(
     pool: web::Data<PgPool>,
     skill_id: web::Path<i32>,
     form: web::Json<UpdateSkill>,
+    req: actix_web::HttpRequest,
 ) -> HttpResponse {
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if role != Role::Admin {
+        return HttpResponse::Forbidden().body("Только администратор может обновлять навыки");
+    }
+
     let result = sqlx::query!(
         r#"
         UPDATE skills
@@ -146,7 +163,14 @@ pub async fn update_skill(
 pub async fn delete_skill(
     pool: web::Data<PgPool>,
     skill_id: web::Path<i32>,
+    req: actix_web::HttpRequest,
 ) -> HttpResponse {
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if role != Role::Admin {
+        return HttpResponse::Forbidden().body("Только администратор может удалять навыки");
+    }
+
     let result = sqlx::query!(
         "UPDATE skills SET is_deleted = TRUE WHERE skill_id = $1",
         *skill_id
@@ -157,5 +181,297 @@ pub async fn delete_skill(
     match result {
         Ok(_) => HttpResponse::Ok().body("Навык помечен как удалённый"),
         Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use actix_http::Request;
+    use actix_web::{
+        App, dev::{Service, ServiceResponse},
+        http::StatusCode,
+        test,
+        web,
+    };
+    use actix_web_httpauth::middleware::HttpAuthentication;
+    use chrono::Utc;
+    use sqlx::{Pool, Postgres};
+
+    use crate::middleware::auth::jwt_validator;
+    use crate::middleware::roles::{RequireRole, Role};
+
+    use super::*;
+
+    #[derive(serde::Serialize)]
+    struct TestClaims {
+        sub: i32,
+        role: String,
+        exp: usize,
+    }
+
+    fn generate_test_token(user_id: i32, role: Role) -> String {
+        let exp = (Utc::now() + chrono::Duration::hours(1)).timestamp() as usize;
+        let role = match role {
+            Role::Admin => "admin",
+            Role::User => "user",
+            Role::Guest => "guest",
+        };
+
+        let claims = TestClaims {
+            sub: user_id,
+            role: role.to_string(),
+            exp,
+        };
+
+        jsonwebtoken::encode(
+            &jsonwebtoken::Header::default(),
+            &claims,
+            &jsonwebtoken::EncodingKey::from_secret("TestSecret".as_ref()),
+        ).unwrap()
+    }
+
+    async fn create_test_app(
+        pool: Pool<Postgres>,
+        user_id: Option<i32>,
+        role: Option<Role>,
+    ) -> impl Service<Request, Response = ServiceResponse, Error = actix_web::Error> {
+        std::env::set_var("ACCESS_TOKEN_SECRET", "TestSecret");
+
+        let auth_middleware = HttpAuthentication::bearer(jwt_validator);
+
+        let app = App::new()
+            .app_data(web::Data::new(pool))
+            .service(
+                web::scope("/api/skills")
+                    .route("", web::get().to(get_all_skills))
+                    .route("/{id}", web::get().to(get_skill_by_id))
+            )
+            .service(
+                web::scope("/api/admin/skills")
+                    .wrap(auth_middleware.clone())
+                    .wrap(RequireRole::new(Role::Admin))
+                    .route("", web::post().to(create_skill))
+                    .route("/{id}", web::put().to(update_skill))
+                    .route("/{id}", web::delete().to(delete_skill))
+            )
+            .wrap_fn(move |req, srv| {
+                if let Some(id) = user_id {
+                    req.extensions_mut().insert(id);
+                }
+                if let Some(r) = role.clone() {
+                    req.extensions_mut().insert(r);
+                }
+                srv.call(req)
+            });
+
+        test::init_service(app).await
+    }
+
+    async fn clean_db(pool: &PgPool) {
+        let mut tx = pool.begin().await.unwrap();
+        sqlx::query!("TRUNCATE TABLE skills, categories CASCADE")
+            .execute(&mut *tx)
+            .await
+            .unwrap();
+        tx.commit().await.unwrap();
+    }
+
+    async fn setup_category(pool: &PgPool) -> i32 {
+        let result = sqlx::query!(
+            "INSERT INTO categories (title, description) VALUES ($1, $2) RETURNING category_id",
+            "Test Category",
+            "Test Description"
+        )
+            .fetch_one(pool)
+            .await
+            .unwrap();
+
+        result.category_id
+    }
+
+    #[sqlx::test]
+    async fn test_get_all_skills() {
+        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        clean_db(&pool).await;
+
+        let category_id = setup_category(&pool).await;
+
+        sqlx::query!(
+            "INSERT INTO skills (title, description, category_id) VALUES ($1, $2, $3)",
+            "Test Skill",
+            "Test Description",
+            category_id
+        )
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let app = create_test_app(pool, None, None).await;
+
+        let req = test::TestRequest::get()
+            .uri("/api/skills")
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        let body: Vec<SkillResponse> = test::read_body_json(resp).await;
+        assert!(!body.is_empty());
+        assert_eq!(body[0].title, "Test Skill");
+    }
+
+    #[sqlx::test]
+    async fn test_get_skill_by_id() {
+        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        clean_db(&pool).await;
+
+        let category_id = setup_category(&pool).await;
+
+        sqlx::query!(
+            "INSERT INTO skills (skill_id, title, description, category_id) VALUES ($1, $2, $3, $4)",
+            1, "Test Skill", "Test Description", category_id
+        )
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let app = create_test_app(pool, None, None).await;
+
+        let req = test::TestRequest::get()
+            .uri("/api/skills/1")
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        let skill: SkillResponse = test::read_body_json(resp).await;
+        assert_eq!(skill.title, "Test Skill");
+    }
+
+    #[sqlx::test]
+    async fn test_create_skill_as_admin() {
+        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        clean_db(&pool).await;
+
+        let category_id = setup_category(&pool).await;
+
+        let app = create_test_app(pool.clone(), Some(1), Some(Role::Admin)).await;
+        let token = generate_test_token(1, Role::Admin);
+
+        let create_data = CreateSkill {
+            title: "New Skill".to_string(),
+            description: "New Description".to_string(),
+            category_id,
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/admin/skills")
+            .insert_header(("Authorization", format!("Bearer {}", token)))
+            .set_json(&create_data)
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        let created: SkillResponse = test::read_body_json(resp).await;
+        assert_eq!(created.title, "New Skill");
+    }
+
+    #[sqlx::test]
+    async fn test_create_skill_as_user() {
+        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        clean_db(&pool).await;
+
+        let category_id = setup_category(&pool).await;
+
+        let app = create_test_app(pool, Some(1), Some(Role::User)).await;
+        let token = generate_test_token(1, Role::User);
+
+        let create_data = CreateSkill {
+            title: "New Skill".to_string(),
+            description: "New Description".to_string(),
+            category_id,
+        };
+
+        let req = test::TestRequest::post()
+            .uri("/api/admin/skills")
+            .insert_header(("Authorization", format!("Bearer {}", token)))
+            .set_json(&create_data)
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[sqlx::test]
+    async fn test_update_skill() {
+        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        clean_db(&pool).await;
+
+        let category_id = setup_category(&pool).await;
+
+        sqlx::query!(
+            "INSERT INTO skills (skill_id, title, description, category_id) VALUES ($1, $2, $3, $4)",
+            1, "Old Skill", "Old Description", category_id
+        )
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let app = create_test_app(pool.clone(), Some(1), Some(Role::Admin)).await;
+        let token = generate_test_token(1, Role::Admin);
+
+        let update_data = UpdateSkill {
+            title: Some("Updated Skill".to_string()),
+            description: Some("Updated Description".to_string()),
+            category_id: None,
+        };
+
+        let req = test::TestRequest::put()
+            .uri("/api/admin/skills/1")
+            .insert_header(("Authorization", format!("Bearer {}", token)))
+            .set_json(&update_data)
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        let updated: SkillResponse = test::read_body_json(resp).await;
+        assert_eq!(updated.title, "Updated Skill");
+    }
+
+    #[sqlx::test]
+    async fn test_delete_skill() {
+        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        clean_db(&pool).await;
+
+        let category_id = setup_category(&pool).await;
+
+        sqlx::query!(
+            "INSERT INTO skills (skill_id, title, description, category_id) VALUES ($1, $2, $3, $4)",
+            1, "To Delete", "Description", category_id
+        )
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let app = create_test_app(pool.clone(), Some(1), Some(Role::Admin)).await;
+        let token = generate_test_token(1, Role::Admin);
+
+        let req = test::TestRequest::delete()
+            .uri("/api/admin/skills/1")
+            .insert_header(("Authorization", format!("Bearer {}", token)))
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        // Проверяем что навык помечен как удаленный
+        let skill = sqlx::query!("SELECT is_deleted FROM skills WHERE skill_id = 1")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+
+        assert!(skill.is_deleted);
     }
 }
