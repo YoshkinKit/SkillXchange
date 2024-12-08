@@ -1,10 +1,11 @@
 use std::env;
 
 use actix_files::Files;
-use actix_web::{middleware::Logger, App, HttpServer, web};
+use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 use middleware::auth::jwt_validator;
+
 use crate::middleware::roles::{RequireRole, Role};
 
 mod db;
@@ -58,6 +59,17 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api/skills")
                     .route("", web::get().to(handlers::skill::get_all_skills))
                     .route("/{id}", web::get().to(handlers::skill::get_skill_by_id)),
+            )
+            // Маршруты для работы с запросами
+            .service(
+                web::scope("/api/requests")
+                    .wrap(auth_middleware.clone())
+                    .wrap(RequireRole::new(Role::User))
+                    .route("/sent", web::get().to(handlers::request::get_sent_requests))
+                    .route("/received", web::get().to(handlers::request::get_received_requests))
+                    .route("", web::post().to(handlers::request::create_request))
+                    .route("/{id}/status", web::put().to(handlers::request::update_request_status))
+                    .route("/{id}", web::delete().to(handlers::request::delete_request)),
             )
             .service(
                 // Маршруты для администратора

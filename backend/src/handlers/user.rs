@@ -215,7 +215,7 @@ pub async fn get_users_by_skill(
 ) -> HttpResponse {
     let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
 
-    if role != Role::Admin || role != Role::User {
+    if role != Role::Admin && role != Role::User {
         return HttpResponse::Forbidden().body("Доступ запрещен");
     }
 
