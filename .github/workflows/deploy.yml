@@ -9,6 +9,21 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v4
@@ -19,13 +34,32 @@ jobs:
         toolchain: stable
         override: true
 
+    - name: Установить переменные окружения
+      run: |
+        echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
+        echo "ACCESS_TOKEN_SECRET=test_secret_key" >> $GITHUB_ENV
+        echo "REFRESH_TOKEN_SECRET=test_refresh_secret_key" >> $GITHUB_ENV
+        echo "PORT=8000" >> $GITHUB_ENV
+    
+    - name: Применить миграции
+      working-directory: backend
+      run: |
+        cargo install sqlx-cli --no-default-features --features native-tls,postgres
+        sqlx database create
+        sqlx migrate run
+
     - name: Сборка
       working-directory: backend
       run: cargo build --verbose
 
     - name: Запуск тестов
       working-directory: backend
-      run: cargo test --verbose
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        ACCESS_TOKEN_SECRET: test_secret_key
+        REFRESH_TOKEN_SECRET: test_refresh_secret_key
+        PORT: 8000
+      run: cargo test --verbose -- --test-threads=1
 
   deploy:
     runs-on: ubuntu-latest
