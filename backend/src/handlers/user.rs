@@ -309,6 +309,7 @@ pub async fn delete_user_skill(
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use actix_http::Request;
     use actix_web::{
         App, dev::{Service, ServiceResponse},
@@ -426,7 +427,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_all_users() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
 
@@ -482,7 +484,10 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_user_by_id() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
+            .await
+            .unwrap();
         clean_db(&pool).await;
 
         // Создаем тестового пользователя
@@ -512,7 +517,10 @@ mod tests {
 
     #[sqlx::test]
     async fn test_update_user_success() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
+            .await
+            .unwrap();
         clean_db(&pool).await;
 
         // Создаем пользователя
@@ -557,7 +565,11 @@ mod tests {
 
     #[sqlx::test]
     async fn test_update_user_forbidden() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
+            .await
+            .unwrap();
+
         clean_db(&pool).await;
 
         sqlx::query!(
@@ -591,7 +603,10 @@ mod tests {
 
     #[sqlx::test]
     async fn test_delete_user_success() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
+            .await
+            .unwrap();
         clean_db(&pool).await;
 
         sqlx::query!(
@@ -627,7 +642,10 @@ mod tests {
 
     #[sqlx::test]
     async fn test_add_user_skill() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
+            .await
+            .unwrap();
         clean_db(&pool).await;
 
         // Создаем категорию
@@ -688,7 +706,11 @@ mod tests {
 
     #[sqlx::test]
     async fn test_delete_user_skill() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
+            .await
+            .unwrap();
+
         clean_db(&pool).await;
 
         sqlx::query!(

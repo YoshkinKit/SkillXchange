@@ -202,6 +202,7 @@ pub async fn refresh_token(
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use super::*;
     use actix_web::{test, App, web};
     use sqlx::PgPool;
@@ -226,7 +227,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_register_user_success() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
         clean_db(&pool).await;
@@ -259,7 +261,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_register_user_invalid_email() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
         clean_db(&pool).await;
@@ -288,7 +291,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_login_user_success() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
         clean_db(&pool).await;
@@ -337,7 +341,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_login_user_wrong_password() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
         clean_db(&pool).await;
@@ -378,7 +383,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_refresh_token() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db")
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str())
             .await
             .unwrap();
         clean_db(&pool).await;

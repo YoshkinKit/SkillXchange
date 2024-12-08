@@ -175,6 +175,7 @@ pub async fn delete_category(
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use actix_http::Request;
     use actix_web::{
         App, dev::{Service, ServiceResponse},
@@ -267,7 +268,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_all_categories() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         sqlx::query!(
@@ -294,7 +296,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_category_by_id() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         sqlx::query!(
@@ -320,7 +323,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_create_category_as_admin() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let app = create_test_app(pool.clone(), Some(1), Some(Role::Admin)).await;
@@ -346,7 +350,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_create_category_as_user() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let app = create_test_app(pool, Some(1), Some(Role::User)).await;
@@ -369,7 +374,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_update_category() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         sqlx::query!(
@@ -403,7 +409,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_delete_category() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         sqlx::query!(

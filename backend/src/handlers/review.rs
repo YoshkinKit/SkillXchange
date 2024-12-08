@@ -261,6 +261,7 @@ pub async fn delete_review(
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use actix_http::Request;
     use actix_web::{
         App, dev::{Service, ServiceResponse},
@@ -400,7 +401,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_user_reviews() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -433,7 +435,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_create_review() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -464,7 +467,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_update_review() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -502,7 +506,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_delete_review() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;

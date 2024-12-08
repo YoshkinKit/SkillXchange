@@ -227,6 +227,7 @@ pub async fn delete_request(
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use actix_http::Request;
     use actix_web::{
         App, dev::{Service, ServiceResponse},
@@ -387,7 +388,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_sent_requests() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -419,7 +421,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_received_requests() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -451,7 +454,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_create_request() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -481,7 +485,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_update_request_status() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -518,7 +523,8 @@ mod tests {
 
     #[sqlx::test]
     async fn test_delete_request() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -558,7 +564,8 @@ mod tests {
     // Добавляем тест на обновление статуса неверным пользователем
     #[sqlx::test]
     async fn test_update_request_status_wrong_user() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
@@ -594,7 +601,8 @@ mod tests {
     // Добавляем тест на обновление с неверным статусом
     #[sqlx::test]
     async fn test_update_request_status_invalid_status() {
-        let pool = PgPool::connect("postgres://postgres:111@localhost:5432/test_db").await.unwrap();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL не установлена");
+        let pool = PgPool::connect(database_url.as_str()).await.unwrap();
         clean_db(&pool).await;
 
         let (sender_id, receiver_id, skill_id) = setup_test_data(&pool).await;
