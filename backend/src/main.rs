@@ -83,6 +83,16 @@ async fn main() -> std::io::Result<()> {
                     .route("/{id}", web::put().to(handlers::review::update_review))
                     .route("/{id}", web::delete().to(handlers::review::delete_review)),
             )
+            // Маршруты для работы с сообщениями
+            .service(
+                web::scope("/api/messages")
+                    .wrap(auth_middleware.clone())
+                    .wrap(RequireRole::new(Role::User))
+                    .route("/chat/{id}", web::get().to(handlers::message::get_chat_messages))
+                    .route("", web::post().to(handlers::message::create_message))
+                    .route("/{id}", web::put().to(handlers::message::update_message))
+                    .route("/{id}", web::delete().to(handlers::message::delete_message)),
+            )
             .service(
                 // Маршруты для администратора
                 web::scope("api/admin")
