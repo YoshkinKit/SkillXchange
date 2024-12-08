@@ -34,10 +34,6 @@ jobs:
         toolchain: stable
         override: true
 
-    - name: Сборка
-      working-directory: backend
-      run: cargo build --verbose
-
     - name: Установить переменные окружения
       run: |
         echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
@@ -51,6 +47,10 @@ jobs:
         cargo install sqlx-cli --no-default-features --features native-tls,postgres
         sqlx database create
         sqlx migrate run
+
+    - name: Сборка
+      working-directory: backend
+      run: cargo build --verbose
 
     - name: Запуск тестов
       working-directory: backend
