@@ -11,7 +11,7 @@ ENV ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET
 ENV REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET
 
 RUN cargo install sqlx-cli --no-default-features --features native-tls,postgres
-RUN sqlx migrate
+RUN sqlx migrate run
 RUN cargo sqlx prepare
 
 RUN cargo build --release
