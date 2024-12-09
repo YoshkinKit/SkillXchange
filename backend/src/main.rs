@@ -1,6 +1,5 @@
 use std::env;
 
-use actix_files::Files;
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
@@ -113,7 +112,6 @@ async fn main() -> std::io::Result<()> {
                             .route("/{id}", web::delete().to(handlers::skill::delete_skill)),
                     ),
             )
-            .service(Files::new("/static", "../frontend/dist").index_file("index.html"))
     })
         .bind(("127.0.0.1", port))?
         .run()
