@@ -1,5 +1,6 @@
 use std::env;
 
+use actix_files::Files;
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
@@ -27,6 +28,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .app_data(web::Data::new(pool.clone()))
+            .service(Files::new("/", "./frontend/dist").index_file("index.html"))
             // Маршруты для аутентификации и авторизации
             .service(
                 web::scope("/api/auth")
