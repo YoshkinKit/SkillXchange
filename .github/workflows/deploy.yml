@@ -121,3 +121,11 @@ jobs:
           heroku_app_name: 'skillxchange'
           heroku_email: '10252126@stud.op.edu.ua'
           usedocker: true
+          docker_build_args: |
+            DATABASE_URL
+            ACCESS_TOKEN_SECRET
+            REFRESH_TOKEN_SECRET
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
