@@ -1,0 +1,27 @@
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+  }
+  
+  .input-label {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .input--error {
+    border-color: #ff4d4f;
+  }
+  
+  .input-error {
+    color: #ff4d4f;
+    font-size: 12px;
+  }

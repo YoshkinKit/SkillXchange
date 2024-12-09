@@ -7,6 +7,7 @@ edition = "2021"
 actix-web = "4.9.0"
 actix-http = "3.9.0"
 actix-files = "0.6.6"
+actix-cors = "0.7.0"
 actix-web-httpauth = "0.8.2"
 sqlx = {version = "0.8.2", features = ["postgres", "runtime-async-std", "tls-native-tls", "chrono", "derive"]}
 serde = {version = "1.0.215", features = ["derive"]}

@@ -5,6 +5,7 @@ use jsonwebtoken::{decode, DecodingKey, encode, EncodingKey, Header, Validation}
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use regex::Regex;
+use serde_json::json;
 
 fn is_valid_email(email: &str) -> bool {
     let email_regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
@@ -33,37 +34,69 @@ pub async fn register_user(
     form: web::Json<RegisterInfo>,
 ) -> HttpResponse {
     if !is_valid_email(&form.email) {
-        return HttpResponse::BadRequest().body("Неверный формат email");
+        return HttpResponse::BadRequest().json(json!({
+            "message": "Неверный формат email"
+        }));
     }
 
-    let password_hash = match hash(&form.password, DEFAULT_COST) {
-        Ok(hash) => hash,
-        Err(e) => return HttpResponse::InternalServerError().body(format!("Ошибка хеширования: {}", e)),
-    };
-
-    let result = sqlx::query!(
-        r#"
-        INSERT INTO users (username, email, password_hash, role)
-        VALUES ($1, $2, $3, $4)
-        RETURNING user_id, username, email, role, created_at
-        "#,
+    let existing_user = sqlx::query!(
+        "SELECT username, email FROM users WHERE username = $1 OR email = $2",
         form.username,
-        form.email,
-        password_hash,
-        form.role
+        form.email
     )
-        .fetch_one(pool.get_ref())
-        .await;
+    .fetch_optional(pool.get_ref())
+    .await;
 
-    match result {
-        Ok(user) => HttpResponse::Ok().json(RegisterResponse {
-            user_id: user.user_id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            created_at: user.created_at.expect("REASON"),
-        }),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка базы данных: {}", e)),
+    match existing_user {
+        Ok(Some(user)) => {
+            if user.username == form.username {
+                return HttpResponse::BadRequest().json(json!({
+                    "message": "Пользователь с таким именем уже существует"
+                }));
+            } else {
+                return HttpResponse::BadRequest().json(json!({
+                    "message": "Пользователь с таким email уже существует"
+                }));
+            }
+        }
+        Ok(None) => {
+            let password_hash = match hash(&form.password, DEFAULT_COST) {
+                Ok(hash) => hash,
+                Err(_) => return HttpResponse::InternalServerError().json(json!({
+                    "message": "Ошибка при создании пользователя"
+                })),
+            };
+
+            let result = sqlx::query!(
+                r#"
+                INSERT INTO users (username, email, password_hash, role)
+                VALUES ($1, $2, $3, $4)
+                RETURNING user_id, username, email, role, created_at
+                "#,
+                form.username,
+                form.email,
+                password_hash,
+                form.role
+            )
+            .fetch_one(pool.get_ref())
+            .await;
+
+            match result {
+                Ok(user) => HttpResponse::Ok().json(RegisterResponse {
+                    user_id: user.user_id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    created_at: user.created_at.expect("REASON"),
+                }),
+                Err(_) => HttpResponse::InternalServerError().json(json!({
+                    "message": "Ошибка при создании пользователя"
+                })),
+            }
+        }
+        Err(_) => HttpResponse::InternalServerError().json(json!({
+            "message": "Ошибка сервера при проверке пользователя"
+        })),
     }
 }
 

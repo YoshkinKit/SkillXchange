@@ -1,0 +1,117 @@
+.profile-page {
+    display: flex;
+    gap: 32px;
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.profile-sidebar {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-content {
+    flex: 1;
+    background: white;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #666;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.skills-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 4px;
+}
+
+.add-skill {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.add-skill select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.danger-zone {
+    color: #ff4d4f;
+}
+
+.danger-zone h2 {
+    color: #ff4d4f;
+    margin-bottom: 16px;
+}
+
+.delete-confirmation {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.button--danger {
+    background: #ff4d4f;
+    color: white;
+}
+
+.button--danger:hover {
+    background: #ff7875;
+}

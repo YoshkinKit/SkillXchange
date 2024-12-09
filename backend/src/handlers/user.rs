@@ -249,6 +249,66 @@ pub async fn get_users_by_skill(
     }
 }
 
+#[derive(serde::Serialize)]
+struct CategoryResponse {
+    category_id: i32,
+    title: String,
+    description: String,
+}
+
+#[derive(serde::Serialize)]
+struct SkillResponse {
+    skill_id: i32,
+    title: String,
+    description: String,
+    category: CategoryResponse,
+}
+
+pub async fn get_user_skills(
+    pool: web::Data<PgPool>,
+    user_id: web::Path<i32>,
+    req: actix_web::HttpRequest,
+) -> HttpResponse {
+    let role = req.extensions().get::<Role>().cloned().unwrap_or(Role::Guest);
+
+    if role != Role::Admin && role != Role::User {
+        return HttpResponse::Forbidden().body("Доступ запрещен");
+    }
+
+    let result = sqlx::query!(
+        r#"
+        SELECT s.skill_id, s.title, s.description, c.category_id, c.title as category_title, c.description as category_description
+        FROM skills s
+        JOIN categories c ON s.category_id = c.category_id
+        JOIN user_skills us ON s.skill_id = us.skill_id
+        WHERE us.user_id = $1
+        "#,
+        *user_id
+    )
+        .fetch_all(pool.get_ref())
+        .await;
+
+    match result {
+        Ok(skills) => {
+            let skills = skills.into_iter().map(|skill| {
+                let category = CategoryResponse {
+                    category_id: skill.category_id,
+                    title: skill.category_title,
+                    description: skill.category_description.expect("No description"),
+                };
+                SkillResponse {
+                    skill_id: skill.skill_id,
+                    title: skill.title,
+                    description: skill.description.expect("No description"),
+                    category,
+                }
+            }).collect::<Vec<_>>();
+            HttpResponse::Ok().json(skills)
+        }
+        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
+    }
+}
+
 pub async fn add_user_skill(
     pool: web::Data<PgPool>,
     user_id: web::Path<i32>,

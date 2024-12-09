@@ -1,0 +1,24 @@
+.home {
+    padding: 64px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .home__content {
+    max-width: 600px;
+    text-align: center;
+    margin: 0 auto;
+  }
+  
+  .home__content h1 {
+    font-size: 48px;
+    margin-bottom: 24px;
+    color: #2d2d2d;
+  }
+  
+  .home__content p {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #666;
+    margin-bottom: 32px;
+  }

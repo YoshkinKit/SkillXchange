@@ -1,0 +1,28 @@
+.button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .button--default {
+    background: #6b4de6;
+    color: white;
+  }
+  
+  .button--default:hover {
+    background: #5a3fd9;
+  }
+  
+  .button--outline {
+    background: transparent;
+    border: 1px solid #6b4de6;
+    color: #6b4de6;
+  }
+  
+  .button--outline:hover {
+    background: #6b4de6;
+    color: white;
+  }

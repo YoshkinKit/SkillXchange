@@ -1,0 +1,29 @@
+.header {
+    background: #6b4de6;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header__logo {
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .header__buttons {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .header__buttons .button--outline {
+    border-color: white;
+    color: white;
+  }
+  
+  .header__buttons .button--outline:hover {
+    background: white;
+    color: #6b4de6;
+  }
