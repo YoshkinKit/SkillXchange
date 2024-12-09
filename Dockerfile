@@ -2,6 +2,18 @@
 FROM rust:latest AS backend-builder
 WORKDIR /app/backend
 COPY backend/ .
+
+ARG DATABASE_URL
+ARG ACCESS_TOKEN_SECRET
+ARG REFRESH_TOKEN_SECRET
+ENV DATABASE_URL=$DATABASE_URL
+ENV ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET
+ENV REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET
+
+RUN cargo install sqlx-cli --no-default-features --features native-tls,postgres
+RUN cargo sqlx prepare
+RUN cargo build --release
+
 RUN cargo build --release
 
 # Stage 2: Сборка фронтенда

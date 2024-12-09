@@ -89,9 +89,28 @@ jobs:
         with:
           toolchain: stable
           override: true
+        
+      - name: Установка sqlx-cli
+        run: cargo install sqlx-cli --no-default-features --features native-tls,postgres
+
+      - name: Подготовка SQL запросов
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: cargo sqlx prepare --database-url ${{ secrets.DATABASE_URL }}
+      
+      - name: Применение миграций
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: sqlx migrate run
 
       - name: Сборка бэкенда
         working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
         run: cargo build --release
 
       # Деплой на Heroku
