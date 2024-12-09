@@ -93,18 +93,18 @@ jobs:
       - name: Установка sqlx-cli
         run: cargo install sqlx-cli --no-default-features --features native-tls,postgres
 
-      - name: Подготовка SQL запросов
-        working-directory: backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: cargo sqlx prepare --database-url ${{ secrets.DATABASE_URL }}
-      
       - name: Применение миграций
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: sqlx migrate run
 
+      - name: Подготовка SQL запросов
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: cargo sqlx prepare --database-url ${{ secrets.DATABASE_URL }}
+      
       - name: Сборка бэкенда
         working-directory: backend
         env:
