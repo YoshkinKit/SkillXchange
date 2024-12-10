@@ -1,0 +1,59 @@
+.request {
+    padding: 16px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.request__info {
+    margin-bottom: 16px;
+}
+
+.request__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.request__user {
+    font-weight: 500;
+    color: #333;
+}
+
+.request__skill {
+    color: #666;
+}
+
+.request__letter {
+    color: #444;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.request__status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.status--pending {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.status--accepted {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.status--declined {
+    background: #fff1f0;
+    color: #ff4d4f;
+}
+
+.request__actions {
+    display: flex;
+    gap: 8px;
+}

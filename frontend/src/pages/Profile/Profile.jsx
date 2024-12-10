@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Review } from '../../components/Review/Review'
+import { Pagination } from '../../components/Pagination/Pagination'
+import { RequestItem } from '../../components/RequestItem/RequestItem'
 import { useAuthContext } from '../../contexts/AuthContext'
 import { useProfile } from '../../hooks/useProfile'
 import { Modal } from '../../components/Modal/Modal'
@@ -8,7 +10,6 @@ import { Notification } from '../../components/Notification/Notification'
 import './Profile.css'
 
 export const Profile = () => {
-    const navigate = useNavigate()
     const { userId } = useAuthContext()
     const {
         profile,
@@ -16,11 +17,29 @@ export const Profile = () => {
         allSkills,
         loading,
         error,
+        reviews,
+        totalReviews,
+        totalPages,
+        currentPage,
+        averageRating,
+        incomingRequests,
+        outgoingRequests,
+        requestsPerPage,
+        incomingPage,
+        outgoingPage,
+        handleAcceptRequest,
+        handleDeclineRequest,
         updateProfile,
         addSkill,
         deleteSkill,
         deleteAccount,
-        fetchSkills
+        fetchSkills,
+        setCurrentPage,
+        fetchReviews,
+        fetchRequests,
+        getCurrentPageRequests,
+        setIncomingPage,
+        setOutgoingPage
     } = useProfile(userId)
 
     // Все useState хуки вместе
@@ -48,6 +67,10 @@ export const Profile = () => {
     useEffect(() => {
         if (activeTab === 'skills') {
             fetchSkills()
+        } else if (activeTab === 'rating') {
+            fetchReviews()
+        } else if (activeTab === 'learning') {
+            fetchRequests()
         }
     }, [activeTab])
 
@@ -100,7 +123,6 @@ export const Profile = () => {
             const success = await deleteAccount()
             if (success) {
                 showNotification('Аккаунт успешно удален')
-                setTimeout(() => navigate('/'), 3000)
             }
         } catch (error) {
             showNotification('Ошибка при удалении аккаунта', 'error')
@@ -125,6 +147,18 @@ export const Profile = () => {
                     onClick={() => setActiveTab('skills')}
                 >
                     Мои навыки
+                </Button>
+                <Button
+                    variant={activeTab === 'rating' ? 'default' : 'outline'}
+                    onClick={() => setActiveTab('rating')}
+                >
+                    Рейтинг
+                </Button>
+                <Button
+                    variant={activeTab === 'learning' ? 'default' : 'outline'}
+                    onClick={() => setActiveTab('learning')}
+                >
+                    Обучение
                 </Button>
                 <Button
                     variant={activeTab === 'danger' ? 'default' : 'outline'}
@@ -215,6 +249,99 @@ export const Profile = () => {
                             >
                                 Добавить навык
                             </Button>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'rating' && (
+                    <div className="rating-section">
+                        <h2>Рейтинг</h2>
+
+                        <div className="rating-overview">
+                            <h3>Средний рейтинг</h3>
+                            <div className="rating-value">
+                                {averageRating ? `${averageRating} ★` : '—'}
+                            </div>
+                        </div>
+
+                        <div className="reviews-section">
+                            <h3>Отзывы</h3>
+                            {reviews.length > 0 ? (
+                                <>
+                                    <div className="reviews-list">
+                                        {reviews.map(review => (
+                                            <Review key={review.review_id} review={review} />
+                                        ))}
+                                    </div>
+                                    {totalPages > 1 && (
+                                        <Pagination
+                                            currentPage={currentPage}
+                                            totalPages={totalPages}
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <p className="no-reviews">Отзывов пока нет</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'learning' && (
+                    <div className="learning-section">
+                        <div className="requests-block">
+                            <h3>Входящие запросы</h3>
+                            {incomingRequests.length > 0 ? (
+                                <>
+                                    <div className="requests-list">
+                                        {getCurrentPageRequests(incomingRequests, incomingPage).map(request => (
+                                            <RequestItem
+                                                key={request.request_id}
+                                                request={request}
+                                                type="incoming"
+                                                onAccept={handleAcceptRequest}
+                                                onDecline={handleDeclineRequest}
+                                            />
+                                        ))}
+                                    </div>
+                                    {incomingRequests.length > requestsPerPage && (
+                                        <Pagination
+                                            currentPage={incomingPage}
+                                            totalPages={Math.ceil(incomingRequests.length / requestsPerPage)}
+                                            onPageChange={setIncomingPage}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <p className="no-requests">Входящих запросов нет</p>
+                            )}
+                        </div>
+
+                        <div className="requests-block">
+                            <h3>Исходящие запросы</h3>
+                            {outgoingRequests.length > 0 ? (
+                                <>
+                                    <div className="requests-list">
+                                        {getCurrentPageRequests(outgoingRequests, outgoingPage).map(request => (
+                                            <RequestItem
+                                                key={request.request_id}
+                                                request={request}
+                                                type="outgoing"
+                                            />
+                                        ))}
+                                    </div>
+                                    {outgoingRequests.length > requestsPerPage && (
+                                        <Pagination
+                                            currentPage={outgoingPage}
+                                            totalPages={Math.ceil(outgoingRequests.length / requestsPerPage)}
+                                            onPageChange={setOutgoingPage}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <p className="no-requests">Исходящих запросов нет</p>
+                            )}
                         </div>
                     </div>
                 )}

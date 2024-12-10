@@ -1,0 +1,39 @@
+.review {
+    padding: 16px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.review__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.review__author {
+    font-weight: 500;
+    color: #333;
+}
+
+.review__rating {
+    color: #faad14;
+    font-weight: 500;
+}
+
+.review__text {
+    color: #666;
+    line-height: 1.5;
+}
+
+.review__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.review__skill {
+    font-size: 14px;
+    color: #666;
+}
