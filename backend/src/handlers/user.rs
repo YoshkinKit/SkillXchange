@@ -178,6 +178,51 @@ pub async fn delete_user(
         Err(e) => return HttpResponse::InternalServerError().body(format!("Ошибка начала транзакции: {}", e)),
     };
 
+    // Удаляем отзывы от пользователя и к нему
+    if let Err(e) = sqlx::query!(
+        r#"DELETE FROM reviews WHERE sender_id = $1 OR receiver_id = $1"#,
+        *user_id
+    )
+        .execute(&mut *tx)
+        .await
+    {
+        return HttpResponse::InternalServerError().body(format!("Ошибка удаления отзывов: {}", e));
+    }
+
+    // Удаляем запросы от пользователя и к нему
+    if let Err(e) = sqlx::query!(
+        r#"DELETE FROM requests WHERE sender_id = $1 OR receiver_id = $1"#,
+        *user_id
+    )
+        .execute(&mut *tx)
+        .await
+    {
+        return HttpResponse::InternalServerError().body(format!("Ошибка удаления запросов: {}", e));
+    }
+
+    // Удаляем сообщения от пользователя и к нему
+    if let Err(e) = sqlx::query!(
+        r#"DELETE FROM messages WHERE sender_id = $1 OR receiver_id = $1"#,
+        *user_id
+    )
+        .execute(&mut *tx)
+        .await
+    {
+        return HttpResponse::InternalServerError().body(format!("Ошибка удаления сообщений: {}", e));
+    }
+
+    // Удаляем навыки пользователя
+    if let Err(e) = sqlx::query!(
+        r#"DELETE FROM user_skills WHERE user_id = $1"#,
+        *user_id
+    )
+        .execute(&mut *tx)
+        .await
+    {
+        return HttpResponse::InternalServerError().body(format!("Ошибка удаления навыков: {}", e));
+    }
+
+    // Удаляем токены пользователя
     if let Err(e) = sqlx::query!(
         r#"DELETE FROM refresh_tokens WHERE user_id = $1"#,
         *user_id
@@ -188,6 +233,7 @@ pub async fn delete_user(
         return HttpResponse::InternalServerError().body(format!("Ошибка удаления токенов: {}", e));
     }
 
+    // Удаляем самого пользователя
     if let Err(e) = sqlx::query!(
         r#"DELETE FROM users WHERE user_id = $1"#,
         *user_id
@@ -199,7 +245,7 @@ pub async fn delete_user(
     }
 
     match tx.commit().await {
-        Ok(_) => HttpResponse::Ok().body("Пользователь удален"),
+        Ok(_) => HttpResponse::Ok().body("Пользователь и все связанные данные удалены"),
         Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка фиксации транзакции: {}", e)),
     }
 }
