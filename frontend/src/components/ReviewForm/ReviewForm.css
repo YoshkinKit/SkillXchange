@@ -1,0 +1,37 @@
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-form__rating,
+.review-form__skill,
+.review-form__comment {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.review-form label {
+    font-weight: 500;
+    color: #666;
+}
+
+.review-form select,
+.review-form textarea {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.review-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.review-form__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}

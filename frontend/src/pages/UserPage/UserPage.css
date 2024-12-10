@@ -1,0 +1,101 @@
+.user-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.user-page__header {
+    margin-bottom: 32px;
+}
+
+.user-page__header h1 {
+    font-size: 32px;
+    color: #2d2d2d;
+    margin-bottom: 16px;
+}
+
+.user-page__bio {
+    color: #666;
+    line-height: 1.5;
+}
+
+.user-page__skills {
+    margin-bottom: 48px;
+}
+
+.user-page__skills h2 {
+    font-size: 24px;
+    color: #2d2d2d;
+    margin-bottom: 16px;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    list-style: none;
+    padding: 0;
+}
+
+.skill-item {
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border-radius: 16px;
+    color: #666;
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.average-rating {
+    font-size: 18px;
+}
+
+.average-rating span {
+    color: #faad14;
+    font-weight: 500;
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.no-skills,
+.no-reviews {
+    text-align: center;
+    color: #666;
+    padding: 32px;
+    background: #f8f8f8;
+    border-radius: 8px;
+}
+
+.user-page__loading,
+.user-page__error {
+    text-align: center;
+    padding: 48px;
+    color: #666;
+}
+
+.user-page__error {
+    color: #ff4d4f;
+}
+
+.reviews-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}

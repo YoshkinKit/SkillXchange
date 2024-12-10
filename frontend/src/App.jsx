@@ -8,6 +8,7 @@ import { Profile } from './pages/Profile/Profile'
 import { Chat } from './pages/Chat/Chat'
 import { Skills } from './pages/Skills/Skills'
 import { Teachers } from './pages/Teachers/Teachers'
+import { UserPage } from './pages/UserPage/UserPage'
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute'
 
 import './App.css'
@@ -48,6 +49,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/users/:userId" element={<UserPage />} />
             </Routes>
           </main>
         </div>

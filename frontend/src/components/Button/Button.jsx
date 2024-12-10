@@ -5,13 +5,15 @@ export const Button = ({
   variant = 'default', 
   onClick,
   className = '',
-  type = 'button'
+  type = 'button',
+  disabled = false
 }) => {
   return (
     <button
       type={type}
       onClick={onClick}
       className={`button button--${variant} ${className}`}
+      disabled={disabled}
     >
       {children}
     </button>
