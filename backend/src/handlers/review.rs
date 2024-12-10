@@ -259,6 +259,33 @@ pub async fn delete_review(
     }
 }
 
+pub async fn get_all_reviews(
+    pool: web::Data<PgPool>
+) -> HttpResponse {
+    // Получаем все отзывы
+    let reviews = sqlx::query!(
+        "SELECT * FROM reviews"
+    )
+        .fetch_all(pool.get_ref())
+        .await;
+
+    match reviews {
+        Ok(reviews) => {
+            let reviews = reviews.into_iter().map(|r| ReviewResponse {
+                review_id: r.review_id,
+                sender_id: r.sender_id,
+                receiver_id: r.receiver_id,
+                skill_id: r.skill_id.expect("1"),
+                rating: r.rating.expect("3"),
+                comment: r.comment.expect("No comment"),
+                created_at: r.created_at.expect("1970-01-01T00:00:00Z"),
+            }).collect::<Vec<_>>();
+            HttpResponse::Ok().json(reviews)
+        }
+        Err(e) => HttpResponse::InternalServerError().body(format!("Ошибка: {}", e)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::env;

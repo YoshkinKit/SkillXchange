@@ -1,0 +1,36 @@
+.user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.user-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-form__group label {
+    font-weight: 500;
+    color: #666;
+}
+
+.user-form__group input,
+.user-form__group textarea,
+.user-form__group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.user-form__group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.user-form__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}

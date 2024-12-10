@@ -1,0 +1,36 @@
+.skill-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.skill-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skill-form__group label {
+    font-weight: 500;
+    color: #666;
+}
+
+.skill-form__group input,
+.skill-form__group textarea,
+.skill-form__group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.skill-form__group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.skill-form__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}

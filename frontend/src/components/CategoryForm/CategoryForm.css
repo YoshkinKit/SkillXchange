@@ -1,0 +1,42 @@
+.category-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.category-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-form__group label {
+    font-weight: 500;
+    color: #666;
+}
+
+.category-form__group input,
+.category-form__group textarea {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.category-form__group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.category-form__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.category-form__group input:focus,
+.category-form__group textarea:focus {
+    outline: none;
+    border-color: #6b4de6;
+    box-shadow: 0 0 0 2px rgba(107, 77, 230, 0.1);
+}

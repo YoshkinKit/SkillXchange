@@ -43,22 +43,47 @@ export const UserPage = () => {
                         }
                     })
                 ])
-
+        
                 const [userData, skillsData, reviewsData] = await Promise.all([
                     userResponse.json(),
                     skillsResponse.json(),
                     reviewsResponse.json()
                 ])
-
+        
+                // Получаем информацию об авторах отзывов и навыках
+                const reviewsWithDetails = await Promise.all(
+                    reviewsData.map(async (review) => {
+                        const [userResponse, skillResponse] = await Promise.all([
+                            fetch(`/api/users/${review.sender_id}`, {
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                                }
+                            }),
+                            fetch(`/api/skills/${review.skill_id}`)
+                        ])
+                        
+                        const [userData, skillData] = await Promise.all([
+                            userResponse.json(),
+                            skillResponse.json()
+                        ])
+        
+                        return {
+                            ...review,
+                            username: userData.username,
+                            skillTitle: skillData.title
+                        }
+                    })
+                )
+        
                 setUser(userData)
                 setSkills(skillsData)
-                setReviews(reviewsData)
-
+                setReviews(reviewsWithDetails)
+        
                 // Вычисляем средний рейтинг
-                if (reviewsData.length > 0) {
+                if (reviewsWithDetails.length > 0) {
                     const avgRating = (
-                        reviewsData.reduce((sum, review) => sum + review.rating, 0) /
-                        reviewsData.length
+                        reviewsWithDetails.reduce((sum, review) => sum + review.rating, 0) /
+                        reviewsWithDetails.length
                     ).toFixed(2)
                     setAverageRating(avgRating)
                 }
@@ -134,12 +159,10 @@ export const UserPage = () => {
                     comment: formData.comment
                 })
             })
-
+    
             if (response.ok) {
-                // Обновляем список отзывов
-                const reviewsResponse = await fetch(`/api/reviews/user/${userId}`)
-                const reviewsData = await reviewsResponse.json()
-                setReviews(reviewsData)
+                // Обновляем список отзывов через основную функцию загрузки
+                await fetchData()
                 setShowReviewForm(false)
             }
         } catch (error) {

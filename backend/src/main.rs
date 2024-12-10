@@ -88,6 +88,7 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api/reviews")
                     .wrap(auth_middleware.clone())
                     .wrap(RequireRole::new(Role::User))
+                    .route("", web::get().to(handlers::review::get_all_reviews))
                     .route("/user/{id}", web::get().to(handlers::review::get_user_reviews))
                     .route("/user/{id}/skill/{skill_id}", web::get().to(handlers::review::get_user_reviews_by_skill))
                     .route("/sent/{id}", web::get().to(handlers::review::get_sent_reviews))

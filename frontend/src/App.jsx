@@ -9,6 +9,8 @@ import { Chat } from './pages/Chat/Chat'
 import { Skills } from './pages/Skills/Skills'
 import { Teachers } from './pages/Teachers/Teachers'
 import { UserPage } from './pages/UserPage/UserPage'
+import { Admin } from './pages/Admin/Admin'
+import { AdminRoute } from './components/AdminRoute/AdminRoute'
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute'
 
 import './App.css'
@@ -50,6 +52,14 @@ function App() {
                 }
               />
               <Route path="/users/:userId" element={<UserPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
+                }
+              />
             </Routes>
           </main>
         </div>
