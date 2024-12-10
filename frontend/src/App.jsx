@@ -5,7 +5,11 @@ import { Home } from './pages/Home/Home'
 import { Login } from './pages/Auth/Login'
 import { Register } from './pages/Auth/Register'
 import { Profile } from './pages/Profile/Profile'
+import { Chat } from './pages/Chat/Chat'
+import { Skills } from './pages/Skills/Skills'
+import { Teachers } from './pages/Teachers/Teachers'
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute'
+
 import './App.css'
 
 function App() {
@@ -19,13 +23,30 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route 
-                path="/profile" 
+              <Route
+                path="/profile"
                 element={
                   <ProtectedRoute>
                     <Profile />
                   </ProtectedRoute>
-                } 
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/skills" element={<Skills />} />
+              <Route
+                path="/skills/:skillId/users"
+                element={
+                  <ProtectedRoute>
+                    <Teachers />
+                  </ProtectedRoute>
+                }
               />
             </Routes>
           </main>

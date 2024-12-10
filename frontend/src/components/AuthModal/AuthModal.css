@@ -1,0 +1,15 @@
+.auth-modal {
+    text-align: center;
+}
+
+.auth-modal__text {
+    margin-bottom: 24px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.auth-modal__buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}

@@ -1,0 +1,40 @@
+.teachers {
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.teachers__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.teachers__loading,
+.teachers__error {
+    text-align: center;
+    padding: 48px;
+    color: #666;
+}
+
+.teachers__error {
+    color: #ff4d4f;
+}
+
+.teachers__empty {
+    text-align: center;
+    padding: 48px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.teachers__empty p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.teachers__back-button {
+    min-width: 200px;
+}

@@ -1,0 +1,21 @@
+.request-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.request-form__input {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.request-form__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}

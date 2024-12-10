@@ -1,0 +1,22 @@
+.skill-card {
+    padding: 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.skill-card__title {
+    font-size: 20px;
+    color: #2d2d2d;
+    margin-bottom: 12px;
+}
+
+.skill-card__description {
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.skill-card__button {
+    width: 100%;
+}

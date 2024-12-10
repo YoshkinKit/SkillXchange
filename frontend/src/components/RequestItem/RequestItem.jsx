@@ -14,7 +14,7 @@ export const RequestItem = ({ request, type, onAccept, onDecline }) => {
     const getStatusText = (status, type) => {
         if (type === 'incoming') {
             switch (status) {
-                case 'pending': return ''
+                case 'pending': return 'Пользователь ожидает вашего ответа'
                 case 'accept': return 'Вы приняли этот запрос'
                 case 'decline': return 'Вы отклонили этот запрос'
                 default: return status

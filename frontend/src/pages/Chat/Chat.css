@@ -1,0 +1,21 @@
+.chat-placeholder {
+    height: calc(100vh - 72px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding: 20px;
+}
+
+.chat-placeholder__image {
+    max-width: 400px;
+    width: 100%;
+    height: auto;
+}
+
+.chat-placeholder__text {
+    font-size: 24px;
+    color: #666;
+    text-align: center;
+}
